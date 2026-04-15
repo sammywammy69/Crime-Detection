@@ -1,232 +1,55 @@
-
----
-
-Crime Analysis Dashboard
-
-A data-driven web application that analyzes and visualizes crime data across India (2001–2012) using an interactive map and dashboard.
-
-
----
-
-Overview
-
-India Crime Atlas converts raw NCRB district-wise IPC crime data into meaningful insights through a combination of data processing and web visualization.
-
-The project includes:
-
-State-wise crime analysis
-
-Interactive choropleth map
-
-Crime ranking by state and district
-
-Women safety insights and helplines
-
-A complete data pipeline for reproducibility
-
-
-
----
-
-Features
-
-Interactive Crime Map
-
-Built using Leaflet.js
-
-Displays state-wise crime distribution
-
-Hover to preview data, click to open dashboard
-
-Source: 
-
-
-State Dashboard
-
-Displays:
-
-Helplines
-
-Top crimes
-
-Women safety data
-
-
-Dynamic state selection via URL
-
-Source: 
-
-
-Women Safety Analysis
-
-Extracts major crime categories against women:
-
-Rape
-
-Dowry deaths
-
-Domestic violence
-
-
-Includes both universal and state-specific helplines
-
-Source: 
-
-
-Data Pipeline
-
-Automated pipeline to process raw data and generate outputs.
-
-Run everything using:
-
-
-
-
-Pipeline steps:
-
-1. Data cleaning
-
-
-2. State-level aggregation
-
-
-3. Top crime extraction
-
-
-4. Women safety analysis
-
-
-5. Map generation
-
-
-6. Dashboard bundling
-
-
-
-
----
-
-Project Structure
-
-.
-├── data_pipeline/
-│   ├── 01_clean_data.py
-│   ├── 02_state_summary.py
-│   ├── 03_top_crimes.py
-│   ├── 04_women_safety.py
-│   ├── 05_generate_map.py
-│   ├── 06_bundle_dashboard.py
-│   └── run_pipeline.py
-│
-├── cleaned/
-├── processed/
-├── dashboard_data.json
-├── india_crime_map.html
-├── index.html
-└── india_states.geojson
-
-
----
-
-Installation
-
-1. Clone the repository:
-
-
-
-git clone https://github.com/your-username/india-crime-atlas.git
-cd india-crime-atlas
-
-2. Install dependencies:
-
-
-
+# India Crime Atlas
+## Overview
+**India Crime Atlas** is an end-to-end data pipeline and interactive web dashboard designed to visualize district-wise IPC (Indian Penal Code) crimes from 2001 to 2012. Using National Crime Records Bureau (NCRB) data, this tool generates a comprehensive choropleth map of India and provides detailed, state-by-state breakdowns of criminal activity, with a dedicated focus on women's safety.
+## Key Features
+ * **Interactive Choropleth Map:** A dark-themed, responsive map powered by Leaflet and Folium, visualizing state safety scores and total crime volumes.
+ * **Deep-Dive Dashboards:** Click on any state to open a specialized dashboard (index.html) displaying the state's top IPC crimes, women's safety statistics, and critical emergency helplines.
+ * **Automated Data Pipeline:** A robust, modular Python pipeline that cleans raw CSV data, computes regional summaries, and bundles the outputs into lightweight JSON files for the frontend.
+ * **Women's Safety Focus:** Dedicated data extraction for crimes against women, paired with a curated database of universal and state-specific emergency helplines.
+## Tech Stack
+ * **Data Processing:** Python 3, pandas
+ * **Geospatial Visualization:** folium, GeoJSON
+ * **Frontend:** HTML5, CSS3, Vanilla JavaScript, Leaflet.js
+## Project Structure
+The project is split into an automated backend data pipeline and a static frontend architecture.
+### 1. Data Pipeline
+Execute the master runner (run_pipeline.py) to run the scripts in sequence:
+ * 01_clean_data.py: Normalizes raw NCRB data, standardizes state names, and outputs cleaned/crimes_clean.csv.
+ * 02_state_summary.py: Computes safety scores, state ranks, and yearly crime trends.
+ * 03_top_crimes.py: Aggregates the top 5 distinct IPC crimes per state and district.
+ * 04_women_safety.py: Extracts statistics specifically related to crimes against women and maps emergency helplines.
+ * 05_generate_map.py: Combines data with india_states.geojson to build the interactive india_crime_map.html.
+ * 06_bundle_dashboard.py: Packages all individual JSON outputs into a single, compact dashboard_data.json to minimize browser fetch requests.
+### 2. Frontend
+ * india_crime_map.html: The primary entry point. A full-screen interactive map that previews state data on hover and links to the detailed dashboard on click.
+ * index.html: The state-specific detail view, parsing URL parameters to display relevant dashboard_data.json records in a highly stylized neon-cyberpunk UI.
+## Installation & Usage
+### Prerequisites
+ * Python 3.7+
+ * The raw dataset: 01_District_wise_crimes_committed_IPC_2001_2012.csv (placed in the root or parent directory as specified).
+ * Geospatial boundaries: india_states.geojson.
+### Setup
+**1. Clone the repository and navigate to the pipeline directory:**
+```bash
+git clone <your-repo-url>
+cd data_pipeline
+
+```
+**2. Install Python dependencies:**
+```bash
 pip install pandas folium
 
-
----
-
-Usage
-
-Run Data Pipeline
-
-cd data_pipeline
+```
+**3. Run the master data pipeline:**
+```bash
 python run_pipeline.py
 
-This will generate:
+```
+*This command will process the raw dataset, generate all JSON files, map outputs, and the final dashboard bundle. Wait for the success confirmation in the terminal.*
+**4. Launch the application:**
+Simply open india_crime_map.html in your web browser. No local web server is required, but you can use Live Server or Python's http.server if you prefer:
+```bash
+python -m http.server 8000
 
-Cleaned dataset
-
-Processed JSON files
-
-Interactive map
-
-Dashboard data bundle
-
-
-Open the Application
-
-Open india_crime_map.html in a browser
-
-Click on any state to view detailed dashboard
-
-
-
----
-
-Data Source
-
-NCRB District-wise IPC Crimes Dataset (2001–2012)
-
-
-
----
-
-Technologies Used
-
-Backend:
-
-Python
-
-Pandas
-
-Folium
-
-
-Frontend:
-
-HTML
-
-CSS
-
-JavaScript
-
-Leaflet.js
-
-
-
----
-
-Novelty
-
-Combines data engineering and frontend visualization in a single pipeline
-
-Provides both macro (state-level) and micro (district-level) insights
-
-Integrates women safety analytics with actionable helpline data
-
-Uses a single bundled JSON (dashboard_data.json) for efficient frontend loading
-
-
-
----
-
-Future Improvements
-
-Real-time data integration
-
-Predictive crime analysis using machine learning
-
-Mobile responsiveness improvements
-
-Advanced filtering and search
+```
+Then navigate to http://localhost:8000/india_crime_map.html.
