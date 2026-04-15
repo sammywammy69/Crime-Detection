@@ -1,0 +1,254 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>India Crime Atlas</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #02030a;
+    --line: #141a35;
+    --text: #eaf0ff;
+    --muted: #6d7597;
+    --hot: #ff315d;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; }
+  .app { display: grid; grid-template-columns: minmax(0, 1fr) 340px; height: 100vh; }
+  .left { min-width: 0; display: flex; flex-direction: column; border-right: 1px solid var(--line); }
+  .topbar {
+    height: 76px; border-bottom: 1px solid var(--line); padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .title { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; font-size: 40px; font-weight: 800; line-height: 1; }
+  .title .hot { color: var(--hot); }
+  .sub { font-size: 18px; letter-spacing: 2px; color: var(--muted); margin-top: 6px; }
+  .hint { font-size: 15px; letter-spacing: 1px; color: var(--muted); }
+  .hint .hot { color: var(--hot); font-weight: 700; }
+  #map { flex: 1; width: 100%; background: #000; }
+
+  .side { background: #03061b; display: flex; flex-direction: column; }
+  .side h2 { margin: 24px 20px 4px; color: var(--hot); font-family: 'Orbitron', sans-serif; letter-spacing: 1.5px; }
+  .side .kicker { margin: 0 20px 16px; color: var(--muted); letter-spacing: 2px; font-size: 13px; }
+  .card { border-top: 1px solid var(--line); padding: 20px; }
+  .state { font-family: 'Orbitron', sans-serif; font-size: 42px; letter-spacing: 1px; line-height: 1.1; }
+  .total { margin-top: 12px; color: var(--hot); font-family: 'Orbitron', sans-serif; font-size: 58px; line-height: 1; }
+  .label { color: var(--muted); font-size: 13px; letter-spacing: 2px; margin-top: 8px; }
+  .row { margin-top: 10px; }
+  .row-top { display: flex; justify-content: space-between; font-size: 17px; color: #b9c0dd; }
+  .bar { height: 5px; background: #101732; margin-top: 5px; border-radius: 4px; overflow: hidden; }
+  .fill { height: 100%; background: linear-gradient(90deg, #ff2f5a, #ff9f2f); }
+  .open-btn {
+    margin: 18px 20px; padding: 14px; border: 1px solid #aa2040; text-align: center;
+    color: #ff355f; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;
+    background: transparent; cursor: pointer; font-family: 'Orbitron', sans-serif;
+  }
+  .legend-wrap { margin: 2px 20px 0; }
+  .legend-title { color: var(--muted); letter-spacing: 2px; font-size: 13px; margin-bottom: 8px; }
+  .legend { height: 12px; border-radius: 4px; background: linear-gradient(90deg,#58208a,#9230a5,#ff4f7d,#ff9a3d); border: 1px solid #20294b; }
+  .legend-lr { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .tip { margin: 12px 20px 0; color: #8f97ba; font-size: 14px; }
+
+  .leaflet-tooltip.crime-tooltip {
+    background: #080a1f; color: #fff; border: 1px solid #ff315d; border-radius: 6px;
+    box-shadow: none; font-family: 'Rajdhani', sans-serif; font-size: 22px; padding: 8px 12px;
+  }
+  .leaflet-tooltip.crime-tooltip .small { font-size: 16px; color: #d7dbf2; }
+  .leaflet-container { font-family: 'Rajdhani', sans-serif; }
+
+  @media (max-width: 1100px) {
+    .app { grid-template-columns: 1fr; height: auto; min-height: 100vh; }
+    .left { border-right: none; }
+    #map { height: 65vh; }
+    .side { min-height: 35vh; }
+    .title { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <section class="left">
+      <div class="topbar">
+        <div>
+          <div class="title"><span class="hot">INDIA CRIME</span> ATLAS</div>
+          <div class="sub">IPC CRIMES · 2001-2012 · ALL DISTRICTS</div>
+        </div>
+        <div class="hint">Hover to preview · <span class="hot">Click to open dashboard</span></div>
+      </div>
+      <div id="map"></div>
+    </section>
+
+    <aside class="side">
+      <h2>State Overview</h2>
+      <p class="kicker">HOVER · CLICK TO EXPLORE</p>
+      <div class="card">
+        <div id="state-name" class="state">Loading...</div>
+        <div id="state-total" class="total">-</div>
+        <div class="label">TOTAL IPC · 2001-2012</div>
+        <div id="top-crimes"></div>
+      </div>
+      <button id="open-dashboard" class="open-btn">Open Safety Dashboard →</button>
+      <div class="legend-wrap">
+        <div class="legend-title">TOTAL IPC CRIMES (2001-2012)</div>
+        <div class="legend"></div>
+        <div class="legend-lr"><span>LOW</span><span>HIGH</span></div>
+      </div>
+      <div class="tip">Map colors are based on total IPC crimes per state.</div>
+    </aside>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const normalize = (s = "") => s
+    .toUpperCase()
+    .replace(/&/g, " AND ")
+    .replace(/[^A-Z0-9 ]+/g, " ")
+    .replace(/\bNCT OF\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const aliases = {
+    "ORISSA": "ODISHA",
+    "UTTARANCHAL": "UTTARAKHAND",
+    "PONDICHERRY": "PUDUCHERRY",
+    "ANDAMAN NICOBAR": "ANDAMAN AND NICOBAR ISLANDS",
+    "JAMMU KASHMIR": "JAMMU AND KASHMIR",
+    "NCT DELHI": "DELHI",
+    "DADRA NAGAR HAVELI": "DADRA AND NAGAR HAVELI",
+    "DAMAN DIU": "DAMAN AND DIU"
+  };
+
+  const normKey = (s) => aliases[normalize(s)] || normalize(s);
+  const fmt = (n) => Number(n || 0).toLocaleString("en-IN");
+
+  const palette = ["#5e1f91", "#892aa4", "#bf3b8d", "#ff5376", "#ff9a3c"];
+
+  const map = L.map("map", { zoomControl: false, attributionControl: false, minZoom: 4, maxZoom: 8 });
+  map.setView([22.5, 79], 5);
+
+  let selectedState = null;
+  let stateDataByNorm = {};
+  const emptyRecord = (stateName) => ({ state: stateName, total_crimes: 0, top_crimes: [] });
+
+  function colorForValue(v, min, max) {
+    if (!isFinite(v)) return "#2a2f44";
+    if (max <= min) return palette[2];
+    const t = (v - min) / (max - min);
+    if (t < 0.2) return palette[0];
+    if (t < 0.4) return palette[1];
+    if (t < 0.6) return palette[2];
+    if (t < 0.8) return palette[3];
+    return palette[4];
+  }
+
+  function renderPreview(stateRecord) {
+    const nameEl = document.getElementById("state-name");
+    const totalEl = document.getElementById("state-total");
+    const topEl = document.getElementById("top-crimes");
+
+    if (!stateRecord) {
+      nameEl.textContent = "No Data";
+      totalEl.textContent = "-";
+      topEl.innerHTML = "";
+      return;
+    }
+
+    nameEl.textContent = stateRecord.state;
+    totalEl.textContent = fmt(stateRecord.total_crimes);
+    const list = (stateRecord.top_crimes || []).slice(0, 8);
+    const max = Math.max(1, ...list.map((x) => x.count || 0));
+    topEl.innerHTML = list.map((item) => {
+      const w = Math.round(((item.count || 0) / max) * 100);
+      return `
+        <div class="row">
+          <div class="row-top"><span>${item.crime}</span><strong>${fmt(item.count)}</strong></div>
+          <div class="bar"><div class="fill" style="width:${w}%"></div></div>
+        </div>`;
+    }).join("");
+  }
+
+  function openDashboard(stateName) {
+    if (!stateName) return;
+    const url = `index.html?state=${encodeURIComponent(stateName)}`;
+    window.location.href = url;
+  }
+
+  Promise.all([
+    fetch("dashboard_data.json").then((r) => r.json()),
+    fetch("india_states.geojson").then((r) => r.json())
+  ]).then(([dashboard, geojson]) => {
+    const summaries = dashboard.state_summary || [];
+    const topCrimes = dashboard.top_crimes_state || {};
+
+    summaries.forEach((row) => {
+      const key = normKey(row.state);
+      stateDataByNorm[key] = { ...row, top_crimes: topCrimes[row.state] || [] };
+    });
+
+    const totals = summaries.map((x) => Number(x.total_crimes || 0));
+    const min = Math.min(...totals);
+    const max = Math.max(...totals);
+
+    function style(feature) {
+      const name = feature.properties.ST_NM;
+      const rec = stateDataByNorm[normKey(name)];
+      const isSelected = selectedState && normKey(selectedState) === normKey(name);
+      return {
+        fillColor: colorForValue(rec?.total_crimes, min, max),
+        fillOpacity: 0.9,
+        color: isSelected ? "#ffffff" : "#2d1739",
+        weight: isSelected ? 2.3 : 1.2
+      };
+    }
+
+    const layer = L.geoJSON(geojson, {
+      style,
+      onEachFeature(feature, l) {
+        const stateName = feature.properties.ST_NM;
+        const rec = stateDataByNorm[normKey(stateName)] || null;
+
+        const tooltipHtml = rec
+          ? `<strong>${rec.state}</strong><br><span class='small'>Total IPC: ${fmt(rec.total_crimes)}</span>`
+          : `<strong>${stateName}</strong><br><span class='small'>No mapped data</span>`;
+
+        l.bindTooltip(tooltipHtml, { sticky: true, direction: "top", className: "crime-tooltip" });
+
+        l.on("mouseover", () => {
+          renderPreview(rec || emptyRecord(stateName));
+          l.setStyle({ weight: 2.2, color: "#ff6a8c" });
+        });
+
+        l.on("mouseout", () => {
+          const pinned = selectedState ? stateDataByNorm[normKey(selectedState)] : null;
+          renderPreview(pinned || emptyRecord(stateName));
+          layer.resetStyle(l);
+        });
+
+        l.on("click", () => {
+          selectedState = rec?.state || stateName;
+          renderPreview(rec || emptyRecord(stateName));
+          layer.setStyle(style);
+          openDashboard(selectedState);
+        });
+      }
+    }).addTo(map);
+
+    map.fitBounds(layer.getBounds(), { padding: [15, 15] });
+
+    const defaultState = summaries.find((s) => s.state === "UTTAR PRADESH") || summaries[0];
+    selectedState = defaultState?.state || null;
+    renderPreview(defaultState ? { ...defaultState, top_crimes: topCrimes[defaultState.state] || [] } : null);
+
+    document.getElementById("open-dashboard").addEventListener("click", () => {
+      openDashboard(selectedState || defaultState?.state || "ANDHRA PRADESH");
+    });
+  }).catch((err) => {
+    console.error(err);
+    document.getElementById("state-name").textContent = "Data Load Failed";
+    document.getElementById("state-total").textContent = "-";
+  });
+</script>
+</body>
+</html>

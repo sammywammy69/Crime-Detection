@@ -1,0 +1,213 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Crime Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #02061a;
+    --panel: #060c2a;
+    --text: #e8eeff;
+    --muted: #8c97bc;
+    --blue: #2cb9ff;
+    --purple: #b969ff;
+    --yellow: #ffd64a;
+    --line: #1a2248;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Rajdhani', sans-serif;
+    color: var(--text);
+    background: radial-gradient(1200px 500px at 50% -10%, #12245a 0%, rgba(18,36,90,0) 60%), var(--bg);
+    min-height: 100vh;
+  }
+  .container { max-width: 1320px; margin: 0 auto; padding: 26px 22px 30px; }
+  .head { text-align: center; }
+  .head h1 {
+    margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(38px, 6vw, 72px);
+    letter-spacing: 4px;
+    text-shadow: 0 0 20px rgba(255,255,255,0.35);
+  }
+  .state-pill {
+    display: inline-block;
+    margin-top: 14px;
+    border: 1px solid #1d4c92;
+    color: #a6d0ff;
+    border-radius: 999px;
+    padding: 5px 24px;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 2px;
+    font-size: clamp(16px, 2.2vw, 34px);
+    text-transform: uppercase;
+  }
+
+  .cards {
+    margin-top: 26px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: linear-gradient(180deg, rgba(6,12,42,0.95), rgba(4,8,30,0.98));
+    border-radius: 24px;
+    padding: 20px;
+    min-height: 560px;
+  }
+  .card.blue { border: 2px solid rgba(44,185,255,0.7); box-shadow: 0 0 24px rgba(44,185,255,0.2); }
+  .card.purple { border: 2px solid rgba(185,105,255,0.7); box-shadow: 0 0 24px rgba(185,105,255,0.2); }
+  .card.yellow { border: 2px solid rgba(255,214,74,0.7); box-shadow: 0 0 24px rgba(255,214,74,0.15); }
+
+  .card h2 {
+    margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 1.8px;
+    font-size: clamp(21px, 2vw, 36px);
+    text-transform: uppercase;
+  }
+  .card.blue h2 { color: var(--blue); }
+  .card.purple h2 { color: var(--purple); }
+  .card.yellow h2 { color: var(--yellow); }
+
+  .list { margin-top: 16px; border-top: 1px solid var(--line); }
+  .item {
+    padding: 10px 2px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: clamp(17px, 1.3vw, 30px);
+    line-height: 1.25;
+    color: #d4d9ed;
+  }
+  .item::before { content: '▸ '; color: #7483bf; }
+
+  .subhead {
+    margin-top: 16px;
+    margin-bottom: 8px;
+    color: #9ea76d;
+    letter-spacing: 2px;
+    font-family: 'Orbitron', sans-serif;
+    text-transform: uppercase;
+    font-size: clamp(15px, 1vw, 22px);
+  }
+
+  .back {
+    position: fixed;
+    right: 20px;
+    bottom: 18px;
+    background: rgba(6,14,42,0.95);
+    color: #ff436f;
+    border: 1px solid #8f1e3a;
+    padding: 10px 16px;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 1080px) {
+    .cards { grid-template-columns: 1fr; }
+    .card { min-height: auto; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header class="head">
+      <h1>CRIME DASHBOARD</h1>
+      <div id="state-pill" class="state-pill">Loading...</div>
+    </header>
+
+    <main class="cards">
+      <section class="card blue">
+        <h2>Helplines</h2>
+        <div id="helplines" class="list"></div>
+      </section>
+
+      <section class="card purple">
+        <h2>Top Crimes</h2>
+        <div id="top-crimes" class="list"></div>
+      </section>
+
+      <section class="card yellow">
+        <h2>Women Safety</h2>
+        <div id="women-crimes" class="list"></div>
+        <div class="subhead">Safety Helplines</div>
+        <div id="women-helplines" class="list"></div>
+      </section>
+    </main>
+  </div>
+
+  <button class="back" onclick="window.location.href='india_crime_map.html'">← Back To Map</button>
+
+<script>
+  const normalize = (s = "") => s
+    .toUpperCase()
+    .replace(/&/g, " AND ")
+    .replace(/[^A-Z0-9 ]+/g, " ")
+    .replace(/\bNCT OF\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const aliases = {
+    "ORISSA": "ODISHA",
+    "UTTARANCHAL": "UTTARAKHAND",
+    "PONDICHERRY": "PUDUCHERRY",
+    "ANDAMAN NICOBAR": "ANDAMAN AND NICOBAR ISLANDS",
+    "JAMMU KASHMIR": "JAMMU AND KASHMIR",
+    "NCT DELHI": "DELHI",
+    "DADRA NAGAR HAVELI": "DADRA AND NAGAR HAVELI",
+    "DAMAN DIU": "DAMAN AND DIU"
+  };
+
+  const normKey = (s) => aliases[normalize(s)] || normalize(s);
+  const fmt = (n) => Number(n || 0).toLocaleString("en-IN");
+
+  function rows(container, arr) {
+    container.innerHTML = arr.length
+      ? arr.map((t) => `<div class="item">${t}</div>`).join("")
+      : `<div class="item">No data available</div>`;
+  }
+
+  fetch("dashboard_data.json")
+    .then((r) => r.json())
+    .then((data) => {
+      const wanted = new URLSearchParams(location.search).get("state") || "ANDHRA PRADESH";
+      const allStates = Object.keys(data.top_crimes_state || {});
+
+      const mapByNorm = new Map();
+      allStates.forEach((s) => mapByNorm.set(normKey(s), s));
+
+      const selected = mapByNorm.get(normKey(wanted)) || allStates[0];
+
+      document.getElementById("state-pill").textContent = selected;
+
+      const universal = data.women_helplines?.universal || {};
+      const byState = data.women_helplines?.by_state?.[selected] || {};
+
+      const helplineRows = [
+        ...Object.entries(universal).map(([k, v]) => `${k} — ${v}`),
+        ...Object.entries(byState).map(([k, v]) => `${k} — ${v}`)
+      ];
+
+      const topCrimes = (data.top_crimes_state?.[selected] || []).slice(0, 8)
+        .map((x) => `${x.crime}: ${fmt(x.count)}`);
+
+      const womenCrimes = Object.entries(data.women_crimes_state?.[selected] || {})
+        .map(([k, v]) => `${k}: ${fmt(v)}`);
+
+      const womenHelps = Object.entries(byState).map(([k, v]) => `${k} — ${v}`);
+
+      rows(document.getElementById("helplines"), helplineRows);
+      rows(document.getElementById("top-crimes"), topCrimes);
+      rows(document.getElementById("women-crimes"), womenCrimes);
+      rows(document.getElementById("women-helplines"), womenHelps);
+    })
+    .catch((err) => {
+      console.error(err);
+      document.getElementById("state-pill").textContent = "DATA LOAD ERROR";
+    });
+</script>
+</body>
+</html>
