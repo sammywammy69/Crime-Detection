@@ -40,7 +40,7 @@ cd data_pipeline
 pip install pandas folium
 
 ```
-**3. Run the master data pipeline:**
+**3. Run the master data pippeline:**
 ```bash
 python run_pipeline.py
 
