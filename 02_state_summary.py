@@ -20,8 +20,6 @@ OUT_DIR   = "processed"
 os.makedirs(OUT_DIR, exist_ok=True)
 
 META  = {"STATE", "DISTRICT", "YEAR"}
-EXCL  = {"CUSTODIAL RAPE", "OTHER RAPE", "OTHER THEFT",
-         "KIDNAPPING AND ABDUCTION OF OTHERS", "OTHER IPC CRIMES"}
 
 df = pd.read_csv(CLEAN_CSV)
 crime_cols = [c for c in df.columns if c not in META]
